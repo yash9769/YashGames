@@ -14,6 +14,10 @@ function generateRoomCode() {
 export default function RoomCreate({ onBack }) {
   const navigate = useNavigate()
   const [secretNumber, setSecretNumber] = useState('')
+  const [rangeMax, setRangeMax] = useState(100)
+  const [timeLimit, setTimeLimit] = useState('')
+  const [hint, setHint] = useState('')
+  const [maxAttempts, setMaxAttempts] = useState('')
   const [roomCode, setRoomCode] = useState(null)
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -23,6 +27,10 @@ export default function RoomCreate({ onBack }) {
     const num = parseInt(secretNumber, 10)
     if (isNaN(num)) {
       setError('Enter a valid number')
+      return
+    }
+    if (num < 1 || num > rangeMax) {
+      setError(`Number must be between 1 and ${rangeMax}`)
       return
     }
 
@@ -43,10 +51,22 @@ export default function RoomCreate({ onBack }) {
       attempts++
     }
 
+    const maxAtt = parseInt(maxAttempts, 10)
+    const tLimit = parseInt(timeLimit, 10)
+
     const { error: insertErr } = await supabase.from('rooms').insert({
       room_code: code,
       secret_number: num,
       status: 'active',
+      range_min: 1,
+      range_max: rangeMax,
+      hint: hint.trim() || null,
+      max_attempts: isNaN(maxAtt) || maxAtt <= 0 ? null : maxAtt,
+      time_limit_seconds: isNaN(tLimit) || tLimit <= 0 ? null : tLimit,
+      round_number: 1,
+      max_rounds: 3,
+      host_score: 0,
+      guesser_score: 0,
     })
 
     setLoading(false)
@@ -131,6 +151,69 @@ export default function RoomCreate({ onBack }) {
                   {error}
                 </motion.p>
               )}
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <label className="text-white/60 text-sm font-medium px-1 flex flex-col">
+                Number Range
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {[10, 100, 1000].map(max => (
+                  <button
+                    key={max}
+                    onClick={() => setRangeMax(max)}
+                    className={`p-3 rounded-xl border text-sm font-semibold transition-all ${
+                      rangeMax === max
+                        ? 'bg-accent/20 border-accent text-accent'
+                        : 'bg-white/5 border-white/10 text-white/50 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    1 - {max}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <label className="text-white/60 text-sm font-medium px-1 flex flex-col">
+                Starting Hint <span className="text-xs text-white/30 font-normal">Optional</span>
+              </label>
+              <input
+                type="text"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-white/20 focus:outline-none focus:border-accent transition-colors text-lg"
+                placeholder="e.g. It's an even number"
+                value={hint}
+                onChange={e => setHint(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleCreate()}
+              />
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <label className="text-white/60 text-sm font-medium px-1 flex flex-col">
+                Max Attempts <span className="text-xs text-white/30 font-normal">Optional</span>
+              </label>
+               <input
+                type="number"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-white/20 focus:outline-none focus:border-accent transition-colors text-lg"
+                placeholder="e.g. 10 (leave blank for unlimited)"
+                value={maxAttempts}
+                onChange={e => setMaxAttempts(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleCreate()}
+              />
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <label className="text-white/60 text-sm font-medium px-1 flex flex-col">
+                Time Limit per Guess <span className="text-xs text-white/30 font-normal">Optional</span>
+              </label>
+               <input
+                type="number"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white placeholder:text-white/20 focus:outline-none focus:border-accent transition-colors text-lg"
+                placeholder="e.g. 60 (seconds)"
+                value={timeLimit}
+                onChange={e => setTimeLimit(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleCreate()}
+              />
             </div>
 
             <button

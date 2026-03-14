@@ -4,6 +4,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { playSound } from '../lib/audio.js'
 
 export default function GuessInput({ onGuess, disabled, latestResponse }) {
   const [value, setValue] = useState('')
@@ -12,10 +13,12 @@ export default function GuessInput({ onGuess, disabled, latestResponse }) {
   const handleSubmit = () => {
     const num = parseInt(value, 10)
     if (isNaN(num)) {
+      playSound('error')
       setShake(true)
       setTimeout(() => setShake(false), 500)
       return
     }
+    playSound('pop')
     onGuess(num)
     setValue('')
   }
