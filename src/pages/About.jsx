@@ -106,7 +106,7 @@ export default function About() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.8 }}
               >
-                “For Kshirja And Yash onlyyyy”
+                “For Tushar And Mansi onlyyyy”
               </motion.p>
 
               <div className="space-y-4 text-sm md:text-base">
@@ -128,9 +128,9 @@ export default function About() {
                 Built with love
               </div>
               <div className="flex justify-center items-center gap-3">
-                <span className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center text-sm">Y</span>
+                <span className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center text-sm">T</span>
                 <span className="text-accent-hot animate-pulse">❤️</span>
-                <span className="w-8 h-8 rounded-full bg-accent-hot/10 flex items-center justify-center text-sm">K</span>
+                <span className="w-8 h-8 rounded-full bg-accent-hot/10 flex items-center justify-center text-sm">M</span>
               </div>
             </div>
           </div>
