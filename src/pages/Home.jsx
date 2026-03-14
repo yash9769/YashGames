@@ -3,13 +3,14 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import RoomCreate from '../components/RoomCreate.jsx'
 import RoomJoin from '../components/RoomJoin.jsx'
 
 const pageVariants = {
   initial: { opacity: 0, y: 24 },
   animate: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
-  exit:    { opacity: 0, y: -16, transition: { duration: 0.3 } },
+  exit: { opacity: 0, y: -16, transition: { duration: 0.3 } },
 }
 
 export default function Home() {
@@ -101,9 +102,18 @@ export default function Home() {
               </motion.button>
             </div>
 
-            <p className="text-white/25 text-xs text-center mt-4">
-              Invite a friend anywhere in the world ✨
-            </p>
+            <div className="mt-8 flex flex-col items-center gap-4">
+              <p className="text-white/25 text-xs text-center">
+                Invite a friend anywhere in the world ✨
+              </p>
+
+              <Link
+                to="/about"
+                className="text-white/40 hover:text-white transition-colors text-xs uppercase tracking-widest font-semibold py-2 px-4 rounded-full border border-white/5 hover:border-white/10 hover:bg-white/5"
+              >
+                About Our Space
+              </Link>
+            </div>
           </motion.div>
         )}
 
