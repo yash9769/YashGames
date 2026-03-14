@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    background-color: #0a0a0f;
+    color: #f0f0f5;
+    font-family: 'DM Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  #root {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@layer components {
+  /* Glassmorphism card */
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-glass;
+  }
+
+  /* Primary button */
+  .btn-primary {
+    @apply relative overflow-hidden font-semibold rounded-2xl
+           px-6 py-4 text-white text-base tracking-wide
+           bg-accent transition-all duration-200 active:scale-95
+           shadow-glow select-none;
+  }
+
+  .btn-primary:active {
+    box-shadow: 0 0 15px rgba(108,99,255,0.5);
+  }
+
+  /* Ghost button */
+  .btn-ghost {
+    @apply font-medium rounded-2xl px-6 py-4 text-white/70 text-base
+           border border-white/15 transition-all duration-200
+           active:scale-95 select-none bg-white/5 backdrop-blur-sm;
+  }
+
+  /* Number input */
+  .num-input {
+    @apply w-full bg-white/[0.08] border border-white/[0.15] rounded-2xl
+           px-5 py-4 text-white text-2xl font-mono text-center
+           placeholder-white/30 outline-none
+           focus:border-accent/60 focus:bg-white/[0.1]
+           transition-all duration-200;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Room code display */
+  .room-code {
+    font-family: 'DM Mono', monospace;
+    @apply text-4xl font-bold tracking-[0.3em] text-accent;
+  }
+
+  /* Response badge */
+  .badge-higher {
+    @apply bg-accent-hot/20 text-accent-hot border border-accent-hot/30 rounded-xl px-3 py-1 text-sm font-semibold;
+  }
+  .badge-lower {
+    @apply bg-accent-cool/20 text-accent-cool border border-accent-cool/30 rounded-xl px-3 py-1 text-sm font-semibold;
+  }
+  .badge-correct {
+    @apply bg-green-400/20 text-green-400 border border-green-400/30 rounded-xl px-3 py-1 text-sm font-semibold;
+  }
+  .badge-waiting {
+    @apply bg-white/10 text-white/50 border border-white/10 rounded-xl px-3 py-1 text-sm font-semibold;
+  }
+}
+
+/* Animated gradient background */
+.gradient-bg {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(108, 99, 255, 0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 90%, rgba(255, 101, 132, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 100% 100% at 50% 50%, #0a0a0f 0%, #0a0a0f 100%);
+}
+
+/* Subtle noise texture overlay */
+.noise::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+
+/* Prevent zoom on input focus (iOS Safari) */
+input[type="number"],
+input[type="text"] {
+  font-size: 16px !important;
+}
+
+/* Safe area padding utility */
+.pb-safe { padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); }
+.pt-safe { padding-top: max(1rem, env(safe-area-inset-top)); }
