@@ -1,10 +1,11 @@
 // pages/Victory.jsx
 // Celebration screen shown to both players when the number is guessed correctly.
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import confetti from 'canvas-confetti'
+import { supabase } from '../lib/supabaseClient.js'
 
 export default function Victory() {
   const { roomCode } = useParams()
@@ -12,6 +13,7 @@ export default function Victory() {
   const navigate = useNavigate()
   const role = searchParams.get('role') || 'guesser'
   const fired = useRef(false)
+  const [rematchRequested, setRematchRequested] = useState(false)
 
   useEffect(() => {
     if (fired.current) return
@@ -42,11 +44,85 @@ export default function Victory() {
     })()
   }, [])
 
+  // Listen for rematch events (when room status goes back to 'active')
+  useEffect(() => {
+    if (!roomCode) return
+
+    const fetchRoomIdAndListen = async () => {
+      const { data: roomData } = await supabase
+        .from('rooms')
+        .select('id')
+        .eq('room_code', roomCode.toUpperCase())
+        .single()
+
+      if (!roomData) return
+
+      const channel = supabase
+        .channel(`rematch-${roomData.id}`)
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'rooms',
+          filter: `id=eq.${roomData.id}`,
+        }, (payload) => {
+          if (payload.new.status === 'active') {
+             // Host restarted the game, jump both players back but switch roles!
+             const newRole = role === 'host' ? 'guesser' : 'host'
+             navigate(`/game/${roomCode.toUpperCase()}?role=${newRole}`, { replace: true })
+          }
+        })
+        .subscribe()
+
+      return () => {
+        supabase.removeChannel(channel)
+      }
+    }
+
+    fetchRoomIdAndListen()
+  }, [roomCode, role, navigate])
+
+  const handleRematch = async () => {
+    if (role !== 'host') return
+    setRematchRequested(true)
+
+    // Reset the room status to 'active' and delete previous guesses
+    const { data: roomData } = await supabase
+      .from('rooms')
+      .select('id')
+      .eq('room_code', roomCode.toUpperCase())
+      .single()
+
+    if (roomData) {
+      // 1. Delete old guesses
+      await supabase.from('guesses').delete().eq('room_id', roomData.id)
+      
+      // 2. Reactivate room and increment round (this triggers the listener above for both players)
+      await supabase.from('rooms').update({ status: 'active', round_number: (roomData.round_number || 1) + 1 }).eq('id', roomData.id)
+    }
+  }
+
   const messages = {
     guesser: { headline: 'You cracked it! 🎉', sub: "Your mind is unstoppable." },
     host: { headline: "They got it! 🎊", sub: "Your secret is out." },
   }
   const msg = messages[role] || messages.guesser
+
+  const handleShare = async () => {
+    const text = `I just guessed the secret number in ${roomCode?.toUpperCase()}!\n\nCan you beat my score?\nPlay YashGames: ${window.location.origin}`
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'MindMatch Victory',
+          text,
+        })
+      } catch (err) {
+        console.log('Error sharing:', err)
+      }
+    } else {
+      navigator.clipboard.writeText(text)
+      alert('Result copied to clipboard!')
+    }
+  }
 
   return (
     <motion.div
@@ -99,17 +175,32 @@ export default function Victory() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6, duration: 0.4 }}
       >
+        {role === 'host' ? (
+          <button
+            onClick={handleRematch}
+            disabled={rematchRequested}
+            className="btn-primary w-full disabled:opacity-50"
+          >
+            {rematchRequested ? 'Starting Rematch…' : 'Rematch (Swap Roles) 🔄'}
+          </button>
+        ) : (
+          <div className="glass-card p-4 text-center text-sm text-white/70">
+            Waiting for Host to start a rematch...
+          </div>
+        )}
+        
         <button
-          onClick={() => navigate('/')}
-          className="btn-primary w-full"
+          onClick={handleShare}
+          className="bg-white/10 hover:bg-white/15 text-white w-full py-4 rounded-2xl font-semibold transition-colors flex items-center justify-center gap-2"
         >
-          Play Again 🎮
+          <span>📤</span> Share Result
         </button>
+
         <button
           onClick={() => navigate('/')}
           className="btn-ghost w-full"
         >
-          Go Home
+          Quit to Home
         </button>
       </motion.div>
 
