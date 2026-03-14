@@ -1,10 +1,65 @@
 // pages/About.jsx
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import confetti from 'canvas-confetti'
 
 export default function About() {
+  useEffect(() => {
+    // Sequence of explosions
+    const duration = 3 * 1000
+    const animationEnd = Date.now() + duration
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 }
+
+    const randomInRange = (min, max) => Math.random() * (max - min) + min
+
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now()
+
+      if (timeLeft <= 0) {
+        return clearInterval(interval)
+      }
+
+      const particleCount = 50 * (timeLeft / duration)
+
+      // Hearts & Roses colors
+      const colors = ['#ff0000', '#ff69b4', '#ff1493', '#c71585', '#8b0000', '#228b22']
+
+      // Burst 1
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+        colors: colors,
+      })
+
+      // Burst 2
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+        colors: colors,
+      })
+    }, 250)
+
+    // Center Big Burst
+    const scalar = 2
+    const heart = confetti.shapeFromText({ text: '❤️', scalar })
+    const rose = confetti.shapeFromText({ text: '🌹', scalar })
+
+    confetti({
+      shapes: [heart, rose],
+      particleCount: 40,
+      spread: 70,
+      origin: { y: 0.6 },
+      scalar
+    })
+
+    return () => clearInterval(interval)
+  }, [])
+
   return (
-    <motion.div 
+    <motion.div
       className="flex flex-col min-h-dvh pt-safe pb-safe px-6 relative z-10"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -18,7 +73,7 @@ export default function About() {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center py-12">
-        <motion.div 
+        <motion.div
           className="text-5xl mb-8"
           initial={{ scale: 0, rotate: -20 }}
           animate={{ scale: 1, rotate: 0 }}
@@ -28,14 +83,14 @@ export default function About() {
         </motion.div>
 
         <motion.div
-           className="glass-card w-full max-w-md overflow-hidden relative"
-           initial={{ y: 30, opacity: 0 }}
-           animate={{ y: 0, opacity: 1 }}
-           transition={{ delay: 0.3, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="glass-card w-full max-w-md overflow-hidden relative"
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
           {/* Decorative bar */}
           <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-accent via-accent-hot to-accent" />
-          
+
           <div className="p-8 md:p-10 space-y-8">
             <div className="space-y-2 text-center">
               <h1 className="text-3xl font-bold text-white tracking-tight" style={{ fontFamily: 'display' }}>
@@ -45,7 +100,7 @@ export default function About() {
             </div>
 
             <div className="space-y-6 text-white/70 leading-relaxed text-center">
-              <motion.p 
+              <motion.p
                 className="text-xl font-medium text-white italic"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -53,16 +108,16 @@ export default function About() {
               >
                 “For Kshirja And Yash onlyyyy”
               </motion.p>
-              
+
               <div className="space-y-4 text-sm md:text-base">
                 <p>
-                  In a world full of noise, this tiny corner was built just for the two of us. 
-                  A place where we challenge each other, share moments, and create memories 
+                  In a world full of noise, this tiny corner was built just for the two of us.
+                  A place where we challenge each other, share moments, and create memories
                   one guess at a time.
                 </p>
-                
+
                 <p>
-                  Whether it's a game of numbers or the journey of life, 
+                  Whether it's a game of numbers or the journey of life,
                   everything is better when we're playing it together.
                 </p>
               </div>
@@ -80,8 +135,8 @@ export default function About() {
             </div>
           </div>
         </motion.div>
-        
-        <motion.p 
+
+        <motion.p
           className="mt-10 text-white/20 text-[10px] uppercase tracking-[0.3em] font-medium"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
