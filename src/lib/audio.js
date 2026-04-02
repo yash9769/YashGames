@@ -13,16 +13,22 @@ const audioElements = {}
 export function preloadSounds() {
   if (typeof window === 'undefined') return
   Object.keys(sounds).forEach(key => {
-    const audio = new Audio(sounds[key])
-    audio.preload = 'auto'
-    audioElements[key] = audio
+    const url = sounds[key]
+    if (url) {
+      const audio = new Audio(url)
+      audio.preload = 'auto'
+      audioElements[key] = audio
+    }
   })
 }
 
 export function playSound(name) {
   if (typeof window === 'undefined') return
   try {
-    const sound = audioElements[name] || new Audio(sounds[name])
+    const url = sounds[name]
+    if (!url) return // Skip if no sound URL defined
+
+    const sound = audioElements[name] || new Audio(url)
     sound.currentTime = 0
     sound.volume = 0.5 // Keep it subtle
     sound.play().catch(e => console.warn('Audio playback prevented:', e))
@@ -30,3 +36,4 @@ export function playSound(name) {
     // Ignore. Audio might be blocked by browser policy without user interaction.
   }
 }
+
