@@ -82,17 +82,17 @@ export default function RoomJoin({ onBack }) {
           </div>
 
           <div className="flex flex-col gap-3">
-            <label className="text-white/40 text-xs font-bold uppercase tracking-widest px-1">
+            <label className="text-white/40 text-[10px] font-bold uppercase tracking-[0.2em] px-1">
               Room Code
             </label>
             <input
               type="text"
               className="room-input"
-              placeholder="ABCD"
+              placeholder="----"
               maxLength={4}
               value={code}
               onChange={e => {
-                setCode(e.target.value)
+                setCode(e.target.value.toUpperCase())
                 setError('')
               }}
               onKeyDown={e => e.key === 'Enter' && handleJoin()}
@@ -115,9 +115,16 @@ export default function RoomJoin({ onBack }) {
           <button
             onClick={handleJoin}
             disabled={loading || code.trim().length !== 4}
-            className="w-full bg-accent-cool hover:bg-accent-cool/90 active:bg-accent-cool/80 text-bg-dark font-bold py-4 rounded-2xl text-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(67,232,216,0.3)] mt-4"
+            className="w-full bg-gradient-to-r from-accent-cool to-accent hover:opacity-90 active:scale-[0.98] text-bg-dark font-bold py-5 rounded-2xl text-xl transition-all disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed shadow-[0_0_30px_rgba(67,232,216,0.15)] mt-4 flex items-center justify-center gap-3"
           >
-            {loading ? 'Joining…' : 'Enter Session ⚔️'}
+            {loading ? (
+              <div className="w-6 h-6 border-2 border-bg-dark/30 border-t-bg-dark rounded-full animate-spin" />
+            ) : (
+              <>
+                <span>Enter Session</span>
+                <span className="text-2xl leading-none">⚔️</span>
+              </>
+            )}
           </button>
         </motion.div>
       </AnimatePresence>

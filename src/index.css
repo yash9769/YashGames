@@ -48,14 +48,15 @@
            active:scale-95 select-none bg-white/5 backdrop-blur-sm;
   }
 
-  /* Number input */
-  .num-input {
+  /* Room input */
+  .room-input {
     @apply w-full bg-white/[0.08] border border-white/[0.15] rounded-2xl
-           px-5 py-4 text-white text-2xl font-mono text-center
-           placeholder-white/30 outline-none
-           focus:border-accent/60 focus:bg-white/[0.1]
+           px-5 py-4 text-white text-3xl font-mono text-center
+           placeholder-white/20 outline-none
+           focus:border-accent-cool/60 focus:bg-white/[0.1]
            transition-all duration-200;
     font-family: 'DM Mono', monospace;
+    letter-spacing: 0.2em;
   }
 
   /* Room code display */

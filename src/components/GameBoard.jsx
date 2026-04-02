@@ -220,49 +220,102 @@ export default function GameBoard() {
            initial={{ y: 20, opacity: 0 }}
            animate={{ y: 0, opacity: 1 }}
         >
-          {role === 'guesser' ? (
-            <div className="glass-card p-4">
-              <GuessInput 
-                onGuess={handleMakeGuess} 
-                disabled={!isGuesserTurn || room.status !== 'active'}
-                latestResponse={latestResponse}
-              />
-            </div>
-          ) : (
-            <div className="glass-card p-4 flex flex-col items-center">
-              {isHostTurn ? (
-                <>
-                  <p className="text-sm text-white/60 mb-3 font-medium text-center">
-                    Guesser chose: <span className="font-bold text-white text-xl">{unresolvedGuess.guess_value}</span>
-                  </p>
-                  <div className="grid grid-cols-2 gap-3 w-full">
-                    <button 
-                       onClick={() => handleHostResponse(unresolvedGuess.id, 'lower')}
-                       className="p-4 rounded-xl bg-accent-cool/10 hover:bg-accent-cool/20 border border-accent-cool/30 text-accent-cool font-bold text-lg flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[0_0_15px_rgba(67,232,216,0.1)]"
-                    >
-                      <span className="text-2xl leading-none">↓</span> Lower
-                    </button>
-                    <button 
-                       onClick={() => handleHostResponse(unresolvedGuess.id, 'higher')}
-                       className="p-4 rounded-xl bg-accent-hot/10 hover:bg-accent-hot/20 border border-accent-hot/30 text-accent-hot font-bold text-lg flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[0_0_15px_rgba(255,101,132,0.1)]"
-                    >
-                      Higher <span className="text-2xl leading-none">↑</span>
-                    </button>
-                  </div>
-                  <button 
-                    onClick={() => handleHostResponse(unresolvedGuess.id, 'correct')}
-                    className="w-full mt-3 p-4 rounded-xl bg-gradient-to-r from-accent to-purple-500 text-white font-bold text-lg active:scale-95 transition-all shadow-glow flex items-center justify-center gap-2"
-                  >
-                    🎯 Correct!
-                  </button>
-                </>
-              ) : (
-                <div className="py-6 flex flex-col items-center gap-3">
-                   <div className="w-8 h-8 rounded-full border-2 border-white/20 border-t-white/80 animate-spin" />
-                   <p className="text-white/40 italic text-sm">Waiting for guesser...</p>
+          {room.secret_number === -1 ? (
+             role === 'host' ? (
+                <div className="glass-card p-6 flex flex-col items-center gap-4">
+                   <h3 className="text-xl font-bold text-white font-display">Pick your Secret Number</h3>
+                   <p className="text-white/50 text-sm text-center">
+                     Choose a number between 1 and {room.range_max || 100}
+                   </p>
+                   <input 
+                      type="number"
+                      className="room-input"
+                      placeholder={`1-${room.range_max || 100}`}
+                      min={1}
+                      max={room.range_max || 100}
+                      autoFocus
+                      onKeyDown={(e) => {
+                         if (e.key === 'Enter') {
+                            const val = parseInt(e.target.value)
+                            if (val >= 1 && val <= (room.range_max || 100)) {
+                               supabase.from('rooms').update({ secret_number: val }).eq('id', room.id)
+                            }
+                         }
+                      }}
+                   />
+                   <button 
+                      onClick={(e) => {
+                        const input = e.target.previousSibling
+                        const val = parseInt(input.value)
+                        if (val >= 1 && val <= (room.range_max || 100)) {
+                           supabase.from('rooms').update({ secret_number: val }).eq('id', room.id)
+                        }
+                      }}
+                      className="btn-primary w-full shadow-glow py-4 rounded-2xl"
+                   >
+                      Set Number & Start 🚀
+                   </button>
                 </div>
-              )}
-            </div>
+             ) : (
+                <div className="glass-card p-10 flex flex-col items-center gap-6 text-center">
+                   <motion.div
+                     animate={{ rotate: 360 }}
+                     transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                     className="text-5xl"
+                   >
+                     🌀
+                   </motion.div>
+                   <div>
+                     <h3 className="text-xl font-bold text-white font-display">Waiting for Host</h3>
+                     <p className="text-white/50 text-sm mt-1">The new host is choosing their secret number...</p>
+                   </div>
+                </div>
+             )
+          ) : (
+            role === 'guesser' ? (
+              <div className="glass-card p-4">
+                <GuessInput 
+                  onGuess={handleMakeGuess} 
+                  disabled={!isGuesserTurn || room.status !== 'active'}
+                  latestResponse={latestResponse}
+                />
+              </div>
+            ) : (
+              <div className="glass-card p-4 flex flex-col items-center">
+                {isHostTurn ? (
+                  <>
+                    <p className="text-sm text-white/60 mb-3 font-medium text-center">
+                      Guesser chose: <span className="font-bold text-white text-xl">{unresolvedGuess.guess_value}</span>
+                    </p>
+                    <div className="grid grid-cols-2 gap-3 w-full">
+                      <button 
+                         onClick={() => handleHostResponse(unresolvedGuess.id, 'lower')}
+                         className="p-4 rounded-xl bg-accent-cool/10 hover:bg-accent-cool/20 border border-accent-cool/30 text-accent-cool font-bold text-lg flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[0_0_15px_rgba(67,232,216,0.1)]"
+                      >
+                        <span className="text-2xl leading-none">↓</span> Lower
+                      </button>
+                      <button 
+                         onClick={() => handleHostResponse(unresolvedGuess.id, 'higher')}
+                         className="p-4 rounded-xl bg-accent-hot/10 hover:bg-accent-hot/20 border border-accent-hot/30 text-accent-hot font-bold text-lg flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[0_0_15px_rgba(255,101,132,0.1)]"
+                      >
+                        Higher <span className="text-2xl leading-none">↑</span>
+                      </button>
+                    </div>
+                    <button 
+                      onClick={() => handleHostResponse(unresolvedGuess.id, 'correct')}
+                      className="w-full mt-3 p-4 rounded-xl bg-gradient-to-r from-accent to-purple-500 text-white font-bold text-lg active:scale-95 transition-all shadow-glow flex items-center justify-center gap-2"
+                    >
+                      🎯 Correct!
+                    </button>
+                  </>
+                ) : (
+                  <div className="py-6 flex flex-col items-center gap-3">
+                     <div className="w-8 h-8 rounded-full border-2 border-white/20 border-t-white/80 animate-spin" />
+                     <p className="text-white/40 italic text-sm">Waiting for guesser...</p>
+                  </div>
+                )}
+              </div>
+            )
           )}
         </motion.div>
       </AnimatePresence>

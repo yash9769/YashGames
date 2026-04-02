@@ -96,8 +96,12 @@ export default function Victory() {
       // 1. Delete old guesses
       await supabase.from('guesses').delete().eq('room_id', roomData.id)
       
-      // 2. Reactivate room and increment round (this triggers the listener above for both players)
-      await supabase.from('rooms').update({ status: 'active', round_number: (roomData.round_number || 1) + 1 }).eq('id', roomData.id)
+      // 2. Reactivate room, increment round, and reset secret_number so the NEW host can pick.
+      await supabase.from('rooms').update({ 
+        status: 'active', 
+        round_number: (roomData.round_number || 1) + 1,
+        secret_number: -1 // Special flag meaning "Host needs to pick a new number"
+      }).eq('id', roomData.id)
     }
   }
 

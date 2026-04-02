@@ -273,6 +273,72 @@ export default function Home() {
           </motion.div>
         )}
 
+        {view === 'friends' && (
+          <motion.div
+            key="friends"
+            className="flex flex-col flex-1 w-full max-w-sm mx-auto"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -40 }}
+          >
+            <div className="flex justify-between items-center px-2 mb-6">
+               <button onClick={() => setView('hub')} className="text-white/50 hover:text-white transition-colors font-body font-bold uppercase tracking-wider text-xs flex items-center gap-2">
+                 <span className="text-lg leading-none">←</span> Back
+               </button>
+               <h2 className="text-xl font-bold font-display text-white">Friends</h2>
+            </div>
+
+            <div className="flex flex-col gap-6">
+               {/* Invitations / Social Card (Mock) */}
+               <div className="glass-card p-5 border-accent/20">
+                  <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-4">Quick Actions</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                     <button className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10 group">
+                        <span className="text-2xl mb-1 group-hover:scale-110 transition-transform">➕</span>
+                        <span className="text-[10px] font-bold text-white/60">Add Friend</span>
+                     </button>
+                     <button className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10 group">
+                        <span className="text-2xl mb-1 group-hover:scale-110 transition-transform">💌</span>
+                        <span className="text-[10px] font-bold text-white/60">Invites</span>
+                     </button>
+                  </div>
+               </div>
+
+               {/* Friend List Section */}
+               <div className="flex flex-col gap-3">
+                  <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest px-1">Friend List</h3>
+                  <div className="flex flex-col gap-2">
+                     {/* Empty State for now */}
+                     <div className="glass-card p-8 flex flex-col items-center justify-center gap-2 text-center opacity-40">
+                        <span className="text-4xl filter grayscale">👥</span>
+                        <p className="text-sm">No friends added yet.</p>
+                        <p className="text-[10px] uppercase font-bold tracking-tight">Play a game to find friends!</p>
+                     </div>
+                  </div>
+               </div>
+
+               {/* Recent Players Section */}
+               <div className="flex flex-col gap-3">
+                  <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest px-1">Recent Players</h3>
+                  <div className="flex flex-col gap-2">
+                     <div className="glass-card p-4 flex items-center gap-4 group hover:border-accent/40 transition-colors cursor-pointer">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-sm">
+                           JD
+                        </div>
+                        <div className="flex-1">
+                           <div className="font-bold text-white text-sm">JohnDoe_92</div>
+                           <div className="text-[10px] text-white/40 uppercase font-bold">Played MindMatch 2h ago</div>
+                        </div>
+                        <button className="p-2 rounded-xl bg-accent/20 text-accent hover:bg-accent hover:text-white transition-all active:scale-90">
+                           🎮
+                        </button>
+                     </div>
+                  </div>
+               </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* --- CREATION / JOIN VIEWS --- */}
         {view === 'mm-create' && (
           <motion.div key="mm-create" className="flex flex-col flex-1 pt-12" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}>
