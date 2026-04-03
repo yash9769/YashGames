@@ -19,16 +19,18 @@ export async function validatePlace(placeName) {
     const data = await res.json()
     
     // Check if we have results and if they are "important" enough
-    // Gibberish usually has 0 results or very low importance (< 0.2)
     if (data && data.length > 0) {
       const bestMatch = data[0]
       const importance = parseFloat(bestMatch.importance || 0)
       
       // We also check for 'type' to ensure it's a geographical feature
-      const validTypes = ['city', 'town', 'village', 'country', 'state', 'administrative', 'island', 'continent', 'region', 'municipality', 'boundary']
-      const isPlace = validTypes.some(t => bestMatch.type?.toLowerCase().includes(t) || bestMatch.addresstype?.toLowerCase().includes(t))
-
-      if (importance > 0.1 && (isPlace || bestMatch.osm_type !== 'node')) {
+      const validTypes = ['city', 'town', 'village', 'country', 'state', 'administrative', 'island', 'continent', 'region', 'municipality', 'boundary', 'locality', 'suburb']
+      const type = (bestMatch.type || '').toLowerCase()
+      const addressType = (bestMatch.addresstype || '').toLowerCase()
+      
+      // Nominatim importance threshold: direct matches are usually > 0.4
+      // Gibberish usually has 0 results or very low importance
+      if (importance > 0.3 && (validTypes.includes(type) || validTypes.includes(addressType))) {
         return true
       }
     }

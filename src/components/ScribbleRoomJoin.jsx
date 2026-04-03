@@ -84,25 +84,24 @@ export default function ScribbleRoomJoin({ onBack }) {
                 }}
                 maxLength={4}
                 placeholder="ABCD"
-                className="w-full bg-white/[0.03] border border-white/10 rounded-3xl py-6 px-6 text-center text-4xl font-mono tracking-[0.5em] text-white placeholder:text-white/20 focus:outline-none focus:border-[#BEACF2]/50 focus:bg-white/[0.05] transition-colors"
+                className="room-input w-full py-6 px-6 text-center text-4xl font-mono tracking-[0.5em] text-white placeholder:text-white/20 focus:border-[#BEACF2]/50"
                 autoComplete="off"
                 autoCorrect="off"
                 spellCheck="false"
               />
-              {/* Optional animated glow on focus */}
-              <div className="absolute inset-0 rounded-3xl ring-2 ring-[#BEACF2]/20 blur-md -z-10 opacity-0 transition-opacity peer-focus:opacity-100" />
+              <div className="absolute inset-0 rounded-3xl ring-2 ring-[#BEACF2]/20 blur-md -z-10 opacity-60" />
             </div>
 
             <button
               type="submit"
               disabled={loading || roomCode.length !== 4}
-              className="btn-primary w-full py-5 text-xl font-bold flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-5 text-xl font-bold flex items-center justify-center gap-3 rounded-2xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: 'linear-gradient(135deg, #BEACF2 0%, #9F8CEB 100%)', boxShadow: '0 8px 32px -8px rgba(190, 172, 242, 0.5)' }}
             >
               {loading ? (
                 <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full" />
               ) : (
-                'Enter Game →'
+                'Enter Game ✍️'
               )}
             </button>
             

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import RoomCreate from '../components/RoomCreate.jsx'
@@ -7,6 +7,8 @@ import AtlasRoomCreate from '../components/AtlasRoomCreate.jsx'
 import AtlasRoomJoin from '../components/AtlasRoomJoin.jsx'
 import ScribbleRoomCreate from '../components/ScribbleRoomCreate.jsx'
 import ScribbleRoomJoin from '../components/ScribbleRoomJoin.jsx'
+import { supabase } from '../lib/supabaseClient.js'
+import friendsService from '../lib/friends.js'
 
 const pageVariants = {
   initial: { opacity: 0, y: 24 },
@@ -16,6 +18,86 @@ const pageVariants = {
 
 export default function Home() {
   const [view, setView] = useState('hub')
+  const [friends, setFriends] = useState([])
+  const [requests, setRequests] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [showSearch, setShowSearch] = useState(false)
+  const [user, setUser] = useState(null)
+  const [connStatus, setConnStatus] = useState('checking')
+
+  useEffect(() => {
+    checkUser()
+    loadSocialData()
+    
+    // Subscribe to friend requests
+    let unsubscribe = () => {}
+    try {
+      unsubscribe = friendsService.subscribeToFriendRequests(() => {
+        loadSocialData()
+      })
+    } catch (e) { console.error('Realtime social sub failed:', e) }
+    
+    return () => unsubscribe()
+  }, [])
+
+  async function checkUser() {
+    const { data: { user: currentUser } } = await supabase.auth.getUser()
+    setUser(currentUser)
+    if (currentUser) {
+      setConnStatus('connected')
+    } else {
+      // If no user, we might be in local mode or unauth
+      setConnStatus('unauthenticated')
+    }
+  }
+
+  async function loadSocialData() {
+    try {
+      const friendList = await friendsService.getFriends('accepted')
+      const pendingRequests = await friendsService.getFriendRequests()
+      setFriends(friendList || [])
+      setRequests(pendingRequests || [])
+    } catch (err) {
+      console.error('Failed to load social data:', err)
+      setConnStatus('connection_error')
+    }
+  }
+
+  async function handleSearch(q) {
+    setSearchQuery(q)
+    if (q.length < 3) {
+      setSearchResults([])
+      return
+    }
+    try {
+      const results = await friendsService.searchUsers(q)
+      setSearchResults(results || [])
+    } catch (err) {
+      console.error('Search failed:', err)
+    }
+  }
+
+  async function handleAddFriend(userId) {
+    try {
+      await friendsService.sendFriendRequest(userId)
+      alert('Friend request sent!')
+      setShowSearch(false)
+      setSearchQuery('')
+    } catch (err) {
+      alert(err.message || 'Failed to send request')
+    }
+  }
+
+  async function handleAccept(requestId) {
+    try {
+      await friendsService.acceptFriendRequest(requestId)
+      loadSocialData()
+    } catch (err) {
+      alert('Failed to accept')
+    }
+  }
 
   return (
     <motion.div
@@ -285,55 +367,117 @@ export default function Home() {
                <button onClick={() => setView('hub')} className="text-white/50 hover:text-white transition-colors font-body font-bold uppercase tracking-wider text-xs flex items-center gap-2">
                  <span className="text-lg leading-none">←</span> Back
                </button>
-               <h2 className="text-xl font-bold font-display text-white">Friends</h2>
+               <h2 className="text-xl font-bold font-display text-white">Social Hub</h2>
             </div>
 
             <div className="flex flex-col gap-6">
-               {/* Invitations / Social Card (Mock) */}
+               {/* Quick Actions */}
                <div className="glass-card p-5 border-accent/20">
-                  <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-4">Quick Actions</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                     <button className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10 group">
-                        <span className="text-2xl mb-1 group-hover:scale-110 transition-transform">➕</span>
-                        <span className="text-[10px] font-bold text-white/60">Add Friend</span>
-                     </button>
-                     <button className="flex flex-col items-center justify-center p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10 group">
-                        <span className="text-2xl mb-1 group-hover:scale-110 transition-transform">💌</span>
-                        <span className="text-[10px] font-bold text-white/60">Invites</span>
-                     </button>
+                  <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest mb-4">Discovery</h3>
+                  <div className="flex flex-col gap-3">
+                     <div className="relative">
+                        <input 
+                          type="text"
+                          placeholder="Search username..."
+                          value={searchQuery}
+                          onChange={(e) => handleSearch(e.target.value)}
+                          onFocus={() => setShowSearch(true)}
+                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-accent/50 transition-all font-body"
+                        />
+                        {searchQuery && (
+                          <button onClick={() => {setSearchQuery(''); setSearchResults([]);}} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white">✕</button>
+                        )}
+                     </div>
+
+                     <AnimatePresence>
+                        {showSearch && searchQuery.length >= 3 && (
+                          <motion.div 
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="flex flex-col gap-2 overflow-hidden"
+                          >
+                             {searchResults.length === 0 ? (
+                               <p className="text-[10px] text-white/30 text-center py-2">No users found</p>
+                             ) : (
+                               searchResults.map(u => (
+                                 <div key={u.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                                    <span className="text-xs font-bold text-white">{u.username}</span>
+                                    <button 
+                                      onClick={() => handleAddFriend(u.id)}
+                                      className="text-[10px] font-bold uppercase text-accent bg-accent/10 px-3 py-1.5 rounded-lg hover:bg-accent hover:text-white transition-all"
+                                    >
+                                      Connect
+                                    </button>
+                                 </div>
+                               ))
+                             )}
+                          </motion.div>
+                        )}
+                     </AnimatePresence>
                   </div>
                </div>
 
-               {/* Friend List Section */}
+               {/* Friend Requests */}
+               {requests.length > 0 && (
+                 <div className="flex flex-col gap-3">
+                    <h3 className="text-sm font-bold text-accent-hot uppercase tracking-widest px-1 animate-pulse">Pending Requests</h3>
+                    <div className="flex flex-col gap-2">
+                       {requests.map(req => (
+                         <div key={req.id} className="glass-card p-4 border-accent-hot/20 flex items-center gap-4 bg-accent-hot/5">
+                           <div className="w-10 h-10 rounded-full bg-accent-hot/20 flex items-center justify-center text-sm">👤</div>
+                           <div className="flex-1">
+                             <div className="font-bold text-white text-sm">{req.profiles?.username || 'Gamer'}</div>
+                             <div className="text-[10px] text-white/40 uppercase font-bold">Wants to play!</div>
+                           </div>
+                           <button onClick={() => handleAccept(req.id)} className="p-2 rounded-xl bg-accent-hot text-white hover:scale-105 active:scale-95 transition-all">✓</button>
+                         </div>
+                       ))}
+                    </div>
+                 </div>
+               )}
+
+               {/* Connections List */}
                <div className="flex flex-col gap-3">
-                  <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest px-1">Friend List</h3>
+                  <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest px-1">My Connections</h3>
                   <div className="flex flex-col gap-2">
-                     {/* Empty State for now */}
-                     <div className="glass-card p-8 flex flex-col items-center justify-center gap-2 text-center opacity-40">
-                        <span className="text-4xl filter grayscale">👥</span>
-                        <p className="text-sm">No friends added yet.</p>
-                        <p className="text-[10px] uppercase font-bold tracking-tight">Play a game to find friends!</p>
-                     </div>
+                     {friends.length === 0 ? (
+                       <div className="glass-card p-8 flex flex-col items-center justify-center gap-2 text-center opacity-40">
+                         <span className="text-4xl filter grayscale">👥</span>
+                         <p className="text-sm">No connections yet.</p>
+                       </div>
+                     ) : (
+                       friends.map(f => (
+                         <div key={f.id} className="glass-card p-4 flex items-center gap-4 group hover:border-accent/40 transition-colors">
+                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-sm">
+                             {(f.profiles?.username || '?')[0].toUpperCase()}
+                           </div>
+                           <div className="flex-1">
+                             <div className="font-bold text-white text-sm">{f.profiles?.username}</div>
+                             <div className="text-[10px] text-accent font-bold uppercase">Online</div>
+                           </div>
+                           <button className="p-2 rounded-xl bg-accent/20 text-accent hover:bg-accent hover:text-white transition-all active:scale-90">
+                             🎮
+                           </button>
+                         </div>
+                       ))
+                     )}
                   </div>
                </div>
 
-               {/* Recent Players Section */}
-               <div className="flex flex-col gap-3">
-                  <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest px-1">Recent Players</h3>
-                  <div className="flex flex-col gap-2">
-                     <div className="glass-card p-4 flex items-center gap-4 group hover:border-accent/40 transition-colors cursor-pointer">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-sm">
-                           JD
-                        </div>
-                        <div className="flex-1">
-                           <div className="font-bold text-white text-sm">JohnDoe_92</div>
-                           <div className="text-[10px] text-white/40 uppercase font-bold">Played MindMatch 2h ago</div>
-                        </div>
-                        <button className="p-2 rounded-xl bg-accent/20 text-accent hover:bg-accent hover:text-white transition-all active:scale-90">
-                           🎮
-                        </button>
-                     </div>
+               {/* Connection Diagnostics (Footer) */}
+               <div className="mt-auto pt-8 pb-4 text-center">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                     <div className={`w-2 h-2 rounded-full ${connStatus === 'connected' ? 'bg-green-400 shadow-[0_0_8px_#4ade80]' : connStatus === 'checking' ? 'bg-yellow-400' : 'bg-red-400 shadow-[0_0_8px_#f87171]'}`} />
+                     <span className="text-[10px] uppercase font-bold tracking-widest text-white/30">
+                       Supabase: {connStatus.replace('_', ' ')}
+                     </span>
                   </div>
+                  {connStatus === 'connection_error' && (
+                    <p className="text-[8px] text-red-400/60 mt-2 max-w-[200px] mx-auto italic">
+                      Check your project URL and internet connection. ERR_NAME_NOT_RESOLVED detected.
+                    </p>
+                  )}
                </div>
             </div>
           </motion.div>

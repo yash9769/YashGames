@@ -70,35 +70,50 @@ export default function AtlasRoomJoin({ onBack }) {
             </p>
           </div>
 
-          <div className="flex flex-col gap-3">
-            <label className="text-white/40 text-xs font-bold uppercase tracking-widest px-1 font-body">Room Code</label>
-            <input
-              type="text"
-              className="w-full bg-white/[0.05] border border-white/10 focus:bg-white/[0.08] focus:border-green-400/50 rounded-2xl px-6 py-5 text-4xl text-center tracking-[0.3em] font-mono font-bold text-white uppercase placeholder:text-white/10 outline-none transition-all"
-              placeholder="ABCD"
-              maxLength={4}
-              value={code}
-              onChange={e => { setCode(e.target.value); setError(''); }}
-              onKeyDown={e => e.key === 'Enter' && handleJoin()}
-              autoFocus
-              autoComplete="off"
-              autoCorrect="off"
-              spellCheck="false"
-            />
-            {error && (
-              <motion.p className="text-accent-hot text-sm font-semibold px-1 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                {error}
-              </motion.p>
-            )}
-          </div>
+          <div className="flex flex-col gap-6">
+            <div className="relative">
+              <input
+                type="text"
+                className="room-input w-full py-6 px-6 text-center text-4xl font-mono tracking-[0.5em] text-white placeholder:text-white/20 focus:border-green-400/50"
+                placeholder="ABCD"
+                maxLength={4}
+                value={code}
+                onChange={e => { setCode(e.target.value.toUpperCase()); setError(''); }}
+                onKeyDown={e => e.key === 'Enter' && handleJoin()}
+                autoFocus
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck="false"
+              />
+              <div className="absolute inset-0 rounded-3xl ring-2 ring-green-400/20 blur-md -z-10 opacity-60" />
+            </div>
+            
+            <AnimatePresence>
+              {error && (
+                <motion.p
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="text-accent-hot text-center text-sm font-medium bg-accent-hot/10 py-3 rounded-2xl"
+                >
+                  {error}
+                </motion.p>
+              )}
+            </AnimatePresence>
 
-          <button
-            onClick={handleJoin}
-            disabled={loading || code.trim().length !== 4}
-            className="w-full bg-green-400 hover:bg-green-300 active:bg-green-500 text-bg-dark font-bold font-display py-4 rounded-2xl text-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(74,222,128,0.3)] hover:shadow-[0_0_30px_rgba(74,222,128,0.5)] mt-4"
-          >
-            {loading ? 'Joining…' : 'Enter Arena ⚔️'}
-          </button>
+            <button
+              onClick={handleJoin}
+              disabled={loading || code.trim().length !== 4}
+              className="btn-primary w-full py-5 text-xl font-bold flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: 'linear-gradient(135deg, #4ade80 0%, #22c55e 100%)', boxShadow: '0 8px 32px -8px rgba(74, 222, 128, 0.5)' }}
+            >
+              {loading ? (
+                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} className="w-6 h-6 border-2 border-bg-dark/30 border-t-bg-dark rounded-full" />
+              ) : (
+                'Enter Arena ⚔️'
+              )}
+            </button>
+          </div>
         </motion.div>
       </AnimatePresence>
     </div>
